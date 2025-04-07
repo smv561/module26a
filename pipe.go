@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -56,15 +57,18 @@ func read(inChannel chan<- int, done chan bool) {
 	scanner := bufio.NewScanner(os.Stdin)
 	var data string
 	for scanner.Scan() {
+		log.Println("Получение введенных данных")
 		data = scanner.Text()
 		if strings.EqualFold(data, "exit") {
 			fmt.Println("Выход из программы")
+			log.Println("Произведен выход из программы")
 			close(done)
 			return
 		}
 		i, err := strconv.Atoi(data)
 		if err != nil {
 			fmt.Println("Вводите только целые числа")
+			log.Println("Введены некорректные символы")
 			continue
 		}
 
@@ -78,6 +82,7 @@ func NegativeFilter(inChannel <-chan int, outChannel chan<- int, done chan bool)
 		case data := <-inChannel:
 			if data > 0 {
 				outChannel <- data
+				log.Println("Сработал фильтр отрицательных чисел")
 			}
 		case <-done:
 			return
@@ -91,6 +96,7 @@ func nonThreeDividedFilter(inChannel <-chan int, outChannel chan<- int, done cha
 		case data := <-inChannel:
 			if data%3 == 0 {
 				outChannel <- data
+				log.Println("Сработал фильтр чисел, которые деляется на три")
 			}
 		case <-done:
 			return
@@ -104,10 +110,12 @@ func bufferFunc(inChannel <-chan int, outChannel chan<- int, done chan bool, siz
 		select {
 		case data := <-inChannel:
 			buffer.Push(data)
+			log.Println("Добавление числа в буфер")
 		case <-time.After(interval):
 			bufferData := buffer.Get()
 			for _, data := range bufferData {
 				outChannel <- data
+				log.Println("Извлечение числа из буфера")
 			}
 		case <-done:
 			return
